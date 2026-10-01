@@ -3,6 +3,7 @@
 
 #include "EtherCAT/ethercat_state.h"
 #include "EtherCAT/ethercat_pdo.h"
+#include "EtherCAT/ethercat_od.h" /* 第七课新增：按索引访问从站变量。 */
 
 /* 辅助观察：按十六进制打印缓冲区，不参与通信或控制。
  * 当前先关注打印出的字节，不需要自己重写这个函数。 */
@@ -77,5 +78,45 @@ int main(void)
     printf("Master received: statusword=0x%04X, actual_position=%" PRId32 "\n",
            (unsigned int)master_feedback.statusword, master_feedback.actual_position);
 
+    /* 第七课从这里开始。上面的第六课流程保留，方便对照。
+     * 这张字典属于从站，关联的是 slave_command 和 slave_feedback。
+     * & 取变量地址；字典记住这些地址，就能找到原来的变量。 */
+    EC_ObjectDictionary od = {0};
+    int32_t od_value = 0; /* 临时接收读取结果，不是字典的独立存储。 */
+    if (EC_OD_Init(&od, &slave_command.target_position,
+                   &slave_feedback.actual_position) != EC_OD_OK) {
+        return 1;
+    }
+    puts("\nLesson 7: Object Dictionary");
+
+    /* 演示 1：不用成员名，改为凭 0x607A:00 找到目标位置并读取。 */
+    if (EC_OD_ReadI32(&od, 0x607A, 0, &od_value) != EC_OD_OK) {
+        return 1;
+    }
+    printf("OD read 0x607A:00: %" PRId32 "\n", od_value);
+
+    /* 演示 2：通过字典读实际位置，读到的是你设置的模拟编码器值。 */
+    if (EC_OD_ReadI32(&od, 0x6064, 0, &od_value) != EC_OD_OK) {
+        return 1;
+    }
+    printf("OD read 0x6064:00: %" PRId32 "\n", od_value);
+
+    /* 演示 3：通过本地字典接口把目标位置改为 2500。
+     * 练习时只改这一行的 2500，观察下面直接打印的原变量是否也改变。
+     * 这里是本地函数测试，尚未通过主站、Mailbox 或 SDO 发送写请求。 */
+    if (EC_OD_WriteI32(&od, 0x607A, 0, 2500) != EC_OD_OK) {
+        return 1;
+    }
+    printf("OD write 0x607A:00: slave target_position=%" PRId32 "\n",
+           slave_command.target_position);
+
+    /* 演示 4：尝试把实际位置写成 999，预期被权限检查拒绝。
+     * 先检查返回结果，再确认原来的实际位置仍然保留。 */
+    EC_OD_Result result = EC_OD_WriteI32(&od, 0x6064, 0, 999);
+    printf("OD write 0x6064:00: %s, actual_position=%" PRId32 "\n",
+           EC_OD_ResultName(result), slave_feedback.actual_position);
+    if (result != EC_OD_READ_ONLY) {
+        return 1;
+    }
     return 0;
 }

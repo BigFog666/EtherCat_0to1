@@ -1,5 +1,7 @@
 # EtherCAT Slave Simulator：第六课
 
+当前累计工程已加入[第七课：对象字典](Lesson_07_对象字典.md)。本文件保留第六课讲解和当时的基线输出；当前运行还会打印第七课的字典读写演示。
+
 目标：用标准 C 观察「应用变量 → PDO 字节 → 应用变量」。当前只有简化状态切换和固定 PDO 布局；还没有网络报文、ESC、SDO、对象字典、CiA402 或电机模型。一次数据交换不代表已实现 1 ms 实时周期。
 
 ## 运行
@@ -10,7 +12,7 @@
 .\EtherCAT_Slave_Simulator\build.ps1
 ```
 
-程序由 main.c、EtherCAT/ethercat_state.c、EtherCAT/ethercat_pdo.c 编译而成，生成 build/ethercat_sim.exe。构建脚本也会运行程序。
+程序由 main.c、EtherCAT/ethercat_state.c、EtherCAT/ethercat_pdo.c、EtherCAT/ethercat_od.c 编译而成，生成 build/ethercat_sim.exe。构建脚本也会运行程序。
 
 ## 1. 先分清方向
 
@@ -131,7 +133,7 @@ Master received: statusword=0x0000, actual_position=0
 修改后先保存源文件，再重新运行 build.ps1。单独运行旧的 exe 不会把源文件的修改编译进去。如果 PowerShell 提示执行策略禁止运行脚本，可以在项目根目录直接编译再运行：
 
 ```powershell
-gcc -std=c11 -Wall -Wextra -Wpedantic -Werror .\EtherCAT_Slave_Simulator\main.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_state.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_pdo.c -o .\EtherCAT_Slave_Simulator\build\ethercat_sim.exe
+gcc -std=c11 -Wall -Wextra -Wpedantic -Werror .\EtherCAT_Slave_Simulator\main.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_state.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_pdo.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_od.c -o .\EtherCAT_Slave_Simulator\build\ethercat_sim.exe
 ```
 
 确认编译成功后再执行：
