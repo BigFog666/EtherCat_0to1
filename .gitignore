@@ -1,0 +1,14 @@
+# 只保存源码、脚本、课程说明和学习记录。
+**/build/
+**/build-*/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/.vs/
+**/.idea/
+*.obj
+*.o
+*.exe
+*.pdb
+*.log
+.env
+.env.*
