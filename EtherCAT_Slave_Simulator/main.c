@@ -5,6 +5,7 @@
 #include "EtherCAT/ethercat_pdo.h"
 #include "EtherCAT/ethercat_od.h" /* 第七课新增：按索引访问从站变量。 */
 #include "EtherCAT/ethercat_sdo.h" /* 第八课新增：通过模拟邮箱请求读写对象。 */
+#include "EtherCAT/ethercat_sdo_wire.h" /* 第二小节：请求和响应的字节布局。 */
 
 /* 辅助观察：按十六进制打印缓冲区，不参与通信或控制。
  * 当前先关注打印出的字节，不需要自己重写这个函数。 */
@@ -175,6 +176,70 @@ int main(void)
     printf("SDO Download 0x6064:00: %s, actual_position=%" PRId32 "\n",
            EC_OD_ResultName(response.result), slave_feedback.actual_position);
     if (response.result != EC_OD_READ_ONLY) {
+        return 1;
+    }
+
+    /* 第八课第二小节从这里开始。第一小节的 6000 练习完整保留。
+     * 先看终端的 8 个字节，再对照课程中的偏移表。
+     * 这里只有 SDO 内容，还没有外层 CoE/Mailbox 头或真实网卡收发。 */
+    EC_SDO_Frame wire_request = {0};
+    EC_SDO_Frame wire_response = {0};
+    int32_t wire_value = 0;
+    puts("\nLesson 8 part 2: 8-byte expedited SDO content");
+
+    /* 演示 1：把读请求编码成 40 7A 60 00 00 00 00 00。
+     * 从站解析、访问同一张字典，响应中应带回当前目标 6000。 */
+    if (!EC_SDO_BuildUpload(&wire_request, 0x607A, 0)) {
+        return 1;
+    }
+    PrintBytes("Wire Upload request", wire_request.bytes, EC_SDO_FRAME_SIZE);
+    if (!EC_SDO_ProcessFrame(&mailbox, &od, &wire_request, &wire_response)) {
+        return 1;
+    }
+    PrintBytes("Wire Upload response", wire_response.bytes, EC_SDO_FRAME_SIZE);
+    if (!EC_SDO_GetUploadI32(&wire_response, 0x607A, 0, &wire_value)) {
+        return 1;
+    }
+    printf("Wire Upload value=%" PRId32 "\n", wire_value);
+
+    /* 演示 2：通过字节请求把目标位置写成 7000。
+     * 本节练习只修改下面的 7000，例如改为 8000，再观察数据四字节。
+     * 7000 = 0x00001B58，数据顺序为 58 1B 00 00。 */
+    int32_t wire_target = 7000;
+    if (!EC_SDO_BuildDownloadI32(&wire_request, 0x607A, 0, wire_target)) {
+        return 1;
+    }
+    PrintBytes("Wire Download request", wire_request.bytes, EC_SDO_FRAME_SIZE);
+    if (!EC_SDO_ProcessFrame(&mailbox, &od, &wire_request, &wire_response)) {
+        return 1;
+    }
+    PrintBytes("Wire Download response", wire_response.bytes, EC_SDO_FRAME_SIZE);
+    if (wire_response.bytes[0] != EC_SDO_CMD_DOWNLOAD_ACK ||
+        slave_command.target_position != wire_target) {
+        return 1;
+    }
+
+    /* 演示 3：再用字节请求读取目标，确认读回 7000。 */
+    if (!EC_SDO_BuildUpload(&wire_request, 0x607A, 0) ||
+        !EC_SDO_ProcessFrame(&mailbox, &od, &wire_request, &wire_response) ||
+        !EC_SDO_GetUploadI32(&wire_response, 0x607A, 0, &wire_value)) {
+        return 1;
+    }
+    PrintBytes("Wire Upload after write", wire_response.bytes, EC_SDO_FRAME_SIZE);
+    printf("Wire Upload after write value=%" PRId32 "\n", wire_value);
+
+    /* 演示 4：只读拒绝现在变成标准 Abort 响应。
+     * 响应开头为 80，最后四字节编码错误码 0x06010002。 */
+    uint32_t abort_code = 0;
+    if (!EC_SDO_BuildDownloadI32(&wire_request, 0x6064, 0, 999) ||
+        !EC_SDO_ProcessFrame(&mailbox, &od, &wire_request, &wire_response) ||
+        !EC_SDO_GetAbortCode(&wire_response, &abort_code)) {
+        return 1;
+    }
+    PrintBytes("Wire read-only Abort", wire_response.bytes, EC_SDO_FRAME_SIZE);
+    printf("Abort code=0x%08" PRIX32 ", actual_position=%" PRId32 "\n",
+           abort_code, slave_feedback.actual_position);
+    if (abort_code != EC_SDO_ABORT_READ_ONLY) {
         return 1;
     }
     return 0;

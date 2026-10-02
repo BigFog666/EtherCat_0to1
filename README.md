@@ -2,7 +2,7 @@
 
 学习目标：从纯 C 软件模拟器出发，逐步理解 EtherCAT、PDO/SDO、CoE 对象字典和 CiA402，后续迁移到 STM32 + FreeRTOS + ESC 的单关节控制器。
 
-当前主线：**第八课：Mailbox、CoE 与 SDO，学习中**。第一步请求/响应语义模拟已学习，接下来学习第二步报文字节格式。第六、七课已完成。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
+当前主线：**第八课第二小节：SDO 字节格式，学习中**。第一小节请求/响应语义模拟已学习；当前增加 4 字节对象的快速 SDO 内容编解码。第六、七课已完成。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
 
 ## 学习进度与课程版本
 
@@ -11,7 +11,7 @@
 | 01–05 | 整体架构、报文、寻址、ESC、EtherCAT 状态机 | 已学习，见交接文档 | 没有当时的独立代码版本 |
 | 06 | PDO 与 Process Image | 已完成 | [lesson-06](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-06) |
 | 07 | 对象字典 | 已完成 | [lesson-07](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-07)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-07-start) |
-| 08 | Mailbox、CoE 与 SDO | 第一小节已学习，继续字节格式 | [第一小节归档](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part1)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-start) |
+| 08 | Mailbox、CoE 与 SDO | 第二小节学习中 | [第二小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part2-start)；[第一小节归档](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part1) |
 
 第六课版本是在建立 Git 仓库时，根据本次聊天及现有文件重建的归档，不是当时已经存在的 Git 提交。保留了学习者完成的目标位置 2000、实际位置 300，以及中文注释和兼容的构建脚本。第七课开始版本不表示第七课已经完成。
 
@@ -20,7 +20,8 @@
 - [项目交接文档](项目交接文档.md)：第一至第五课、最终目标及课程规划。
 - [纯 C 从站模拟器](EtherCAT_Slave_Simulator/README.md)：第六课说明及累计代码。
 - [第七课对象字典说明](EtherCAT_Slave_Simulator/Lesson_07_对象字典.md)：已完课，保留练习成果。
-- [第八课 Mailbox 与 SDO 说明](EtherCAT_Slave_Simulator/Lesson_08_Mailbox与SDO.md)：当前课程第一步。
+- [第八课 Mailbox 与 SDO 说明](EtherCAT_Slave_Simulator/Lesson_08_Mailbox与SDO.md)：已学习的第一小节。
+- [第八课第二步：SDO 字节格式](EtherCAT_Slave_Simulator/Lesson_08_第二步_SDO字节格式.md)：当前小节，包含布局表、流程图和新练习。
 - [程序运行流程图](docs/程序运行流程图.md)：main 的整体顺序及一次 SDO 事务的展开图。
 - [学习记录](docs/学习记录.md)：每课新增内容、练习、验证及版本来源。
 - [Windows SOEM 主站实验](EtherCAT_Master_Lab/README.md)：网卡枚举和后续真实从站实验准备。
@@ -33,7 +34,7 @@
 .\EtherCAT_Slave_Simulator\build.ps1
 ```
 
-需要 GCC 在 PATH 中。脚本会重新编译并运行；生成文件保存在 build 中，不上传 GitHub。当前运行包括第六课数据交换、第七课字典读写，以及第八课邮箱请求/响应语义模拟。
+需要 GCC 在 PATH 中。脚本会重新编译并运行；生成文件保存在 build 中，不上传 GitHub。当前运行包括第六课数据交换、第七课字典读写、第八课邮箱请求/响应语义模拟及快速 SDO 内容的字节编解码。
 
 主站实验依赖 SOEM 和 Npcap。vendor 源码及本地构建目录不提交；重新准备方法、固定的 SOEM 提交和许可证位置见主站实验 README。
 
