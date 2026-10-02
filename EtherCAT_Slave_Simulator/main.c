@@ -4,6 +4,7 @@
 #include "EtherCAT/ethercat_state.h"
 #include "EtherCAT/ethercat_pdo.h"
 #include "EtherCAT/ethercat_od.h" /* 第七课新增：按索引访问从站变量。 */
+#include "EtherCAT/ethercat_sdo.h" /* 第八课新增：通过模拟邮箱请求读写对象。 */
 
 /* 辅助观察：按十六进制打印缓冲区，不参与通信或控制。
  * 当前先关注打印出的字节，不需要自己重写这个函数。 */
@@ -116,6 +117,64 @@ int main(void)
     printf("OD write 0x6064:00: %s, actual_position=%" PRId32 "\n",
            EC_OD_ResultName(result), slave_feedback.actual_position);
     if (result != EC_OD_READ_ONLY) {
+        return 1;
+    }
+
+    /* 第八课从这里开始。前面你完成的 4000 练习保持不变。
+     * 先只看请求中的 service、index、subindex、value 四个字段。
+     * 邮箱用 {0} 初始化，起始状态为 EMPTY。 */
+    EC_Mailbox mailbox = {0};
+    EC_SDO_Request request = {
+        .service = EC_SDO_UPLOAD,
+        .index = 0x607A,
+        .subindex = 0,
+        .value = 0
+    };
+    EC_SDO_Response response = {0};
+    puts("\nLesson 8: SDO / Mailbox semantic simulator");
+
+    /* 演示 1：主站请求读取目标位置。
+     * Transfer 内部是发送请求 -> 从站处理 -> 取回响应。
+     * true 表示收到响应，result == OK 才表示对象读取成功。 */
+    if (!EC_SDO_Transfer(&mailbox, &od, &request, &response) ||
+        response.result != EC_OD_OK) {
+        return 1;
+    }
+    printf("SDO Upload 0x607A:00: value=%" PRId32 "\n", response.value);
+
+    /* 演示 2：主站请求把目标位置写为 5000。
+     * 小练习：只把下面的 5000 改成 6000，再编译运行。
+     * 写响应确认操作结果，不要求把写入值再回传一次。 */
+    request.service = EC_SDO_DOWNLOAD;
+    request.value = 5000;
+    if (!EC_SDO_Transfer(&mailbox, &od, &request, &response) ||
+        response.result != EC_OD_OK) {
+        return 1;
+    }
+    printf("SDO Download 0x607A:00: OK, slave target_position=%" PRId32 "\n",
+           slave_command.target_position);
+
+    /* 演示 3：再发一次读取请求，验证从站保存的是新目标位置。
+     * Upload 不使用 request.value，为便于理解仍将它清零。 */
+    request.service = EC_SDO_UPLOAD;
+    request.value = 0;
+    if (!EC_SDO_Transfer(&mailbox, &od, &request, &response) ||
+        response.result != EC_OD_OK) {
+        return 1;
+    }
+    printf("SDO Upload 0x607A:00 after write: value=%" PRId32 "\n", response.value);
+
+    /* 演示 4：请求写入只读的实际位置。
+     * 邮箱可以正常返回失败响应；实际位置仍保持 300。 */
+    request.service = EC_SDO_DOWNLOAD;
+    request.index = 0x6064;
+    request.value = 999;
+    if (!EC_SDO_Transfer(&mailbox, &od, &request, &response)) {
+        return 1;
+    }
+    printf("SDO Download 0x6064:00: %s, actual_position=%" PRId32 "\n",
+           EC_OD_ResultName(response.result), slave_feedback.actual_position);
+    if (response.result != EC_OD_READ_ONLY) {
         return 1;
     }
     return 0;
