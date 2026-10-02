@@ -101,10 +101,10 @@ int main(void)
     }
     printf("OD read 0x6064:00: %" PRId32 "\n", od_value);
 
-    /* 演示 3：通过本地字典接口把目标位置改为 2500。
-     * 练习时只改这一行的 2500，观察下面直接打印的原变量是否也改变。
+    /* 演示 3：通过本地字典接口修改目标位置。
+     * 你已完成练习，将 2500 改为 4000，下面直接打印的原变量也会改变。
      * 这里是本地函数测试，尚未通过主站、Mailbox 或 SDO 发送写请求。 */
-    if (EC_OD_WriteI32(&od, 0x607A, 0, 2500) != EC_OD_OK) {
+    if (EC_OD_WriteI32(&od, 0x607A, 0, 4000) != EC_OD_OK) {
         return 1;
     }
     printf("OD write 0x607A:00: slave target_position=%" PRId32 "\n",
