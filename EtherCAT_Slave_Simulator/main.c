@@ -142,11 +142,11 @@ int main(void)
     }
     printf("SDO Upload 0x607A:00: value=%" PRId32 "\n", response.value);
 
-    /* 演示 2：主站请求把目标位置写为 5000。
-     * 小练习：只把下面的 5000 改成 6000，再编译运行。
+    /* 演示 2：主站请求修改目标位置。
+     * 你已将开始示例中的 5000 改为 6000，写入和读回输出都会改变。
      * 写响应确认操作结果，不要求把写入值再回传一次。 */
     request.service = EC_SDO_DOWNLOAD;
-    request.value = 5000;
+    request.value = 6000;
     if (!EC_SDO_Transfer(&mailbox, &od, &request, &response) ||
         response.result != EC_OD_OK) {
         return 1;

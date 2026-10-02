@@ -98,7 +98,7 @@ EC_SDO_Transfer 把三步依次调用，方便第一遍看懂完整事务。它�
 .\EtherCAT_Slave_Simulator\build.ps1
 ```
 
-第六、七课输出之后新增：
+第六、七课输出之后新增。以下是 lesson-08-start 开始版本的 5000 示例：
 
 ```text
 Lesson 8: SDO / Mailbox semantic simulator
@@ -109,6 +109,8 @@ SDO Download 0x6064:00: READ_ONLY, actual_position=300
 ```
 
 4000 来自你第七课的练习；5000 是本课新写入值；实际位置 300 没变。
+
+当前你已将 main 中的请求值改为 6000，Download 和随后 Upload 的两行数值都变为 6000。前面的 Upload 仍读到 4000，第六、七课输出不受影响；流程图已按当前练习数值更新。
 
 这一演示复用了目标位置，便于观察两种访问路径使用同一变量。真实关节的周期目标通常由 PDO 更新；如果下一周期收到新的 RxPDO，它会再次覆盖目标位置。SDO 参数写入也不等于参数已保存到 Flash，持久化是另外的机制。
 
