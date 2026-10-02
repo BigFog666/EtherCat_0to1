@@ -21,6 +21,7 @@
 - [纯 C 从站模拟器](EtherCAT_Slave_Simulator/README.md)：第六课说明及累计代码。
 - [第七课对象字典说明](EtherCAT_Slave_Simulator/Lesson_07_对象字典.md)：已完课，保留练习成果。
 - [第八课 Mailbox 与 SDO 说明](EtherCAT_Slave_Simulator/Lesson_08_Mailbox与SDO.md)：当前课程第一步。
+- [程序运行流程图](docs/程序运行流程图.md)：main 的整体顺序及一次 SDO 事务的展开图。
 - [学习记录](docs/学习记录.md)：每课新增内容、练习、验证及版本来源。
 - [Windows SOEM 主站实验](EtherCAT_Master_Lab/README.md)：网卡枚举和后续真实从站实验准备。
 
