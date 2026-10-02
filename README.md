@@ -2,7 +2,7 @@
 
 学习目标：从纯 C 软件模拟器出发，逐步理解 EtherCAT、PDO/SDO、CoE 对象字典和 CiA402，后续迁移到 STM32 + FreeRTOS + ESC 的单关节控制器。
 
-当前主线：**第八课：Mailbox、CoE 与 SDO，学习中**，先学习请求/响应语义模拟。第六、七课已完成。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
+当前主线：**第八课：Mailbox、CoE 与 SDO，学习中**。第一步请求/响应语义模拟已学习，接下来学习第二步报文字节格式。第六、七课已完成。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
 
 ## 学习进度与课程版本
 
@@ -11,7 +11,7 @@
 | 01–05 | 整体架构、报文、寻址、ESC、EtherCAT 状态机 | 已学习，见交接文档 | 没有当时的独立代码版本 |
 | 06 | PDO 与 Process Image | 已完成 | [lesson-06](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-06) |
 | 07 | 对象字典 | 已完成 | [lesson-07](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-07)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-07-start) |
-| 08 | Mailbox、CoE 与 SDO | 学习中，先模拟请求/响应 | [lesson-08-start](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-start) |
+| 08 | Mailbox、CoE 与 SDO | 第一小节已学习，继续字节格式 | [第一小节归档](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part1)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-start) |
 
 第六课版本是在建立 Git 仓库时，根据本次聊天及现有文件重建的归档，不是当时已经存在的 Git 提交。保留了学习者完成的目标位置 2000、实际位置 300，以及中文注释和兼容的构建脚本。第七课开始版本不表示第七课已经完成。
 
