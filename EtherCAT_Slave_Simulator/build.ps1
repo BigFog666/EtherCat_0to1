@@ -19,6 +19,7 @@ $compilerArguments = @(
     (Join-Path $PSScriptRoot 'EtherCAT\ethercat_sdo_wire.c')
     (Join-Path $PSScriptRoot 'EtherCAT\ethercat_sm.c')
     (Join-Path $PSScriptRoot 'EtherCAT\ethercat_fmmu.c')
+    (Join-Path $PSScriptRoot 'CiA402\cia402.c')
     '-o'
     $executable
 )

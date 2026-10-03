@@ -8,6 +8,7 @@
 #include "EtherCAT/ethercat_sdo_wire.h" /* 第二小节：请求和响应的字节布局。 */
 #include "EtherCAT/ethercat_sm.h" /* 第九课：本地过程数据区的访问规则。 */
 #include "EtherCAT/ethercat_fmmu.h" /* 第九课：逻辑地址换成本地地址。 */
+#include "CiA402/cia402.h" /* 第十课：控制字的请求与状态字的报告。 */
 
 /* 辅助观察：按十六进制打印缓冲区，不参与通信或控制。
  * 当前先关注打印出的字节，不需要自己重写这个函数。 */
@@ -335,5 +336,73 @@ int main(void)
     if (matched || wrong_side != EC_SM_WRONG_DIRECTION) {
         return 1;
     }
+
+    /* 第十课从这里开始。先解释两个已有的 16 位 PDO 字段。
+     * 此处继续使用你的目标 10000、Rx 本地起点 0x1020、反馈 300。
+     * 我们发送一份控制字，然后观察三份人为提供的反馈样例。
+     * 样例不是根据控制字自动生成的，真正状态转换留到第十一课。 */
+    puts("\nLesson 10: CiA402 Controlword / Statusword basics");
+    printf("Control commands: Shutdown=0x%04X, SwitchOn=0x%04X, EnableOperation=0x%04X\n",
+           (unsigned int)CIA402_CW_SHUTDOWN, (unsigned int)CIA402_CW_SWITCH_ON,
+           (unsigned int)CIA402_CW_ENABLE_OPERATION);
+
+    /* 第 1 步：主站请求使能运行。0x000F 的 bit3～0 都为 1。
+     * 控制字是命令，不把这个数直接复制成状态字。 */
+    master_command.controlword = CIA402_CW_ENABLE_OPERATION;
+    EC_PackRxPDO(image.outputs, &master_command);
+    PrintBytes("CiA402 RxPDO", image.outputs, EC_RXPDO_SIZE);
+
+    /* 第 2 步：走已经学会的数据路径，将命令送到从站应用。
+     * 逻辑起点 0 对应本地 0x1020；控制字放在 PDO 偏移 0～1。
+     * 这里读到控制字之后，只解释请求，不改变驱动状态。 */
+    if (!EC_FMMU_Translate(&rx_fmmu, EC_FMMU_WRITE, 0x00000000,
+                           EC_RXPDO_SIZE, &physical_address) ||
+        EC_SM_Write(&sm2, EC_SM_ETHERCAT_SIDE, physical_address,
+                    image.outputs, EC_RXPDO_SIZE) != EC_SM_OK ||
+        EC_SM_Read(&sm2, EC_SM_PDI_SIDE, sm2.physical_start,
+                   pdi_rx, EC_RXPDO_SIZE) != EC_SM_OK) {
+        return 1;
+    }
+    EC_UnpackRxPDO(&slave_command, pdi_rx);
+    printf("Slave controlword=0x%04X, requests_enable_operation=%u\n",
+           (unsigned int)slave_command.controlword,
+           (unsigned int)CIA402_ControlRequestsEnableOperation(slave_command.controlword));
+
+    /* 第 3 步：准备反馈样例。这里只模拟“收到了这些状态报告”。
+     * 首份 0x0040 表示 Switch On Disabled，即使命令已请求使能，
+     * 主站也必须根据反馈判断当前驱动状态。
+     * 练习只改 lesson10_status 为 0x0023，再观察后两份报告。 */
+    uint16_t lesson10_status = 0x0027; /* Operation Enabled 的状态编码样例。 */
+    const uint16_t status_samples[] = {
+        0x0040,
+        lesson10_status,
+        (uint16_t)(lesson10_status | CIA402_SW_WARNING) /* | 给样例加上警告位。 */
+    };
+
+    /* 第 4 步：每份状态字都经过反馈 PDO，再由主站解码。
+     * Pack/SM/PDI/FMMU 搬运字节；CiA402 解码才解释这些位。
+     * 不用整个状态字 == 0x0027 判断，否则带警告位时会误判。
+     * printf 中把 bool 转成 unsigned int，打印成 0 或 1。 */
+    for (size_t i = 0; i < sizeof status_samples / sizeof status_samples[0]; ++i) {
+        slave_feedback.statusword = status_samples[i];
+        EC_PackTxPDO(pdi_tx, &slave_feedback);
+        if (EC_SM_Write(&sm3, EC_SM_PDI_SIDE, sm3.physical_start,
+                        pdi_tx, EC_TXPDO_SIZE) != EC_SM_OK ||
+            !EC_FMMU_Translate(&tx_fmmu, EC_FMMU_READ, 0x00000010,
+                               EC_TXPDO_SIZE, &physical_address) ||
+            EC_SM_Read(&sm3, EC_SM_ETHERCAT_SIDE, physical_address,
+                       image.inputs, EC_TXPDO_SIZE) != EC_SM_OK) {
+            return 1;
+        }
+        PrintBytes("CiA402 TxPDO", image.inputs, EC_TXPDO_SIZE);
+        EC_UnpackTxPDO(&master_feedback, image.inputs);
+        CIA402_DriveState drive_state = CIA402_DecodeStatusword(master_feedback.statusword);
+        printf("Master statusword=0x%04X, drive_state=%s, operation_enabled=%u, warning=%u\n",
+               (unsigned int)master_feedback.statusword, CIA402_StateName(drive_state),
+               (unsigned int)CIA402_IsOperationEnabled(master_feedback.statusword),
+               (unsigned int)((master_feedback.statusword & CIA402_SW_WARNING) != 0u));
+    }
+    printf("Communication state=%s; feedback samples are supplied by the lesson.\n",
+           EC_StateName(state));
     return 0;
 }
