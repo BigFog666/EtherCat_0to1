@@ -2,7 +2,7 @@
 
 学习目标：从纯 C 软件模拟器出发，逐步理解 EtherCAT、PDO/SDO、CoE 对象字典和 CiA402，后续迁移到 STM32 + FreeRTOS + ESC 的单关节控制器。
 
-当前主线：**第九课：SyncManager 与 FMMU，学习中**。第八课已完成并归档；当前用原来的 6 字节 PDO 演示逻辑地址、本地数据区与 PDI 的连接。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
+当前主线：**第九课已完成，下一课进入 CiA402 基础**。本课保留目标位置 10000、本地 Rx 地址 0x1020 及地址不匹配的排错记录。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
 
 ## 学习进度与课程版本
 
@@ -12,7 +12,7 @@
 | 06 | PDO 与 Process Image | 已完成 | [lesson-06](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-06) |
 | 07 | 对象字典 | 已完成 | [lesson-07](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-07)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-07-start) |
 | 08 | Mailbox、CoE 与 SDO | 已完成 | [lesson-08](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08)；[第二小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part2-start)；[第一小节归档](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part1) |
-| 09 | SyncManager 与 FMMU | 学习中 | [lesson-09-start](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-09-start) |
+| 09 | SyncManager 与 FMMU | 已完成 | [lesson-09](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-09)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-09-start) |
 
 第六课版本是在建立 Git 仓库时，根据本次聊天及现有文件重建的归档，不是当时已经存在的 Git 提交。保留了学习者完成的目标位置 2000、实际位置 300，以及中文注释和兼容的构建脚本。第七课开始版本不表示第七课已经完成。
 
@@ -23,8 +23,9 @@
 - [第七课对象字典说明](EtherCAT_Slave_Simulator/Lesson_07_对象字典.md)：已完课，保留练习成果。
 - [第八课 Mailbox 与 SDO 说明](EtherCAT_Slave_Simulator/Lesson_08_Mailbox与SDO.md)：已学习的第一小节。
 - [第八课第二步：SDO 字节格式](EtherCAT_Slave_Simulator/Lesson_08_第二步_SDO字节格式.md)：已完课，包含布局表、流程图和练习。
-- [第九课：SyncManager 与 FMMU](EtherCAT_Slave_Simulator/Lesson_09_SyncManager与FMMU.md)：当前课程，含地址表、流程图、小练习和参考答案。
+- [第九课：SyncManager 与 FMMU](EtherCAT_Slave_Simulator/Lesson_09_SyncManager与FMMU.md)：已完课，含地址表、流程图、练习、参考答案和排错经验。
 - [程序运行流程图](docs/程序运行流程图.md)：main 的整体顺序及一次 SDO 事务的展开图。
+- [硬件与知识关系图](docs/硬件关系图/硬件与知识关系图.html)：按第九课起点整理的离线交互总图，串起 PC、ESC、STM32、电机与课程知识；最新进度以本 README 为准。
 - [学习记录](docs/学习记录.md)：每课新增内容、练习、验证及版本来源。
 - [Windows SOEM 主站实验](EtherCAT_Master_Lab/README.md)：网卡枚举和后续真实从站实验准备。
 

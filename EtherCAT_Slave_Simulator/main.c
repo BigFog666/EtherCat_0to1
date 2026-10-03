@@ -252,12 +252,12 @@ int main(void)
     puts("\nLesson 9: FMMU / SyncManager process data path");
     EC_SyncManager sm2 = {0}; /* 本例选择 SM2 管命令，SM3 管反馈。 */
     EC_SyncManager sm3 = {0};
-    if (EC_SM_Init(&sm2, 0x1000, EC_SM_RXPDO) != EC_SM_OK ||
+    if (EC_SM_Init(&sm2, 0x1020, EC_SM_RXPDO) != EC_SM_OK ||
         EC_SM_Init(&sm3, 0x1010, EC_SM_TXPDO) != EC_SM_OK) {
         return 1;
     }
     EC_FMMU rx_fmmu = {
-        .logical_start = 0x00000000, .physical_start = 0x1000,
+        .logical_start = 0x00000000, .physical_start = 0x1020,
         .length = EC_RXPDO_SIZE, .enabled = true,
         .read_enabled = false, .write_enabled = true
     };
@@ -270,13 +270,13 @@ int main(void)
     uint8_t pdi_rx[EC_RXPDO_SIZE] = {0}; /* 应用从本地数据区取出的副本。 */
     uint8_t pdi_tx[EC_TXPDO_SIZE] = {0}; /* 应用准备交给本地数据区的反馈。 */
 
-    /* 第 1 步：主站仍用原打包函数。本阶段的新目标为 9000。
+    /* 第 1 步：主站仍用原打包函数。你已将本阶段目标改为 10000。
      * 只改变后面的新演示，不覆盖前面各课的 2000/4000/6000/7000。 */
-    master_command.target_position = 9000;
+    master_command.target_position = 10000;
     EC_PackRxPDO(image.outputs, &master_command);
     PrintBytes("Mapped master outputs", image.outputs, EC_RXPDO_SIZE);
 
-    /* 第 2 步：EtherCAT 侧写逻辑地址 0，FMMU 换算成 0x1000。
+    /* 第 2 步：EtherCAT 侧写逻辑地址 0，FMMU 换算成你的新地址 0x1020。
      * Translate 成功只表示地址匹配；随后 SM_Write 才复制数据。
      * 真实硬件中由 ESC 完成；本程序用两个调用展示职责。 */
     if (!EC_FMMU_Translate(&rx_fmmu, EC_FMMU_WRITE, 0x00000000,
@@ -290,7 +290,7 @@ int main(void)
 
     /* 第 3 步：从站应用经 PDI 侧读 SM2，再解包为原来的命令变量。
      * 目标位置更新发生在 Unpack，不是仅凭写 DPRAM 就自动更新。
-     * 字典一直指向此变量，因此也能读到新的 9000。 */
+     * 字典一直指向此变量，因此也能读到新的 10000。 */
     if (EC_SM_Read(&sm2, EC_SM_PDI_SIDE, sm2.physical_start,
                    pdi_rx, EC_RXPDO_SIZE) != EC_SM_OK) {
         return 1;
