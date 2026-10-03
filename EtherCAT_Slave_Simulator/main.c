@@ -6,6 +6,8 @@
 #include "EtherCAT/ethercat_od.h" /* 第七课新增：按索引访问从站变量。 */
 #include "EtherCAT/ethercat_sdo.h" /* 第八课新增：通过模拟邮箱请求读写对象。 */
 #include "EtherCAT/ethercat_sdo_wire.h" /* 第二小节：请求和响应的字节布局。 */
+#include "EtherCAT/ethercat_sm.h" /* 第九课：本地过程数据区的访问规则。 */
+#include "EtherCAT/ethercat_fmmu.h" /* 第九课：逻辑地址换成本地地址。 */
 
 /* 辅助观察：按十六进制打印缓冲区，不参与通信或控制。
  * 当前先关注打印出的字节，不需要自己重写这个函数。 */
@@ -240,6 +242,97 @@ int main(void)
     printf("Abort code=0x%08" PRIX32 ", actual_position=%" PRId32 "\n",
            abort_code, slave_feedback.actual_position);
     if (abort_code != EC_SDO_ABORT_READ_ONLY) {
+        return 1;
+    }
+
+    /* 第九课从这里开始。前面各课的练习及输出保持原样。
+     * 第六课直接把 image.outputs 给从站解包；这次中间增加
+     * FMMU 地址换算 -> SM 管理的本地数据区 -> PDI 读取。
+     * 这里只演示已经配置好的 OP 数据交换，不模拟真实启动配置。 */
+    puts("\nLesson 9: FMMU / SyncManager process data path");
+    EC_SyncManager sm2 = {0}; /* 本例选择 SM2 管命令，SM3 管反馈。 */
+    EC_SyncManager sm3 = {0};
+    if (EC_SM_Init(&sm2, 0x1000, EC_SM_RXPDO) != EC_SM_OK ||
+        EC_SM_Init(&sm3, 0x1010, EC_SM_TXPDO) != EC_SM_OK) {
+        return 1;
+    }
+    EC_FMMU rx_fmmu = {
+        .logical_start = 0x00000000, .physical_start = 0x1000,
+        .length = EC_RXPDO_SIZE, .enabled = true,
+        .read_enabled = false, .write_enabled = true
+    };
+    EC_FMMU tx_fmmu = {
+        .logical_start = 0x00000010, .physical_start = 0x1010,
+        .length = EC_TXPDO_SIZE, .enabled = true,
+        .read_enabled = true, .write_enabled = false
+    };
+    uint16_t physical_address = 0; /* 接收 FMMU 换算得到的本地地址。 */
+    uint8_t pdi_rx[EC_RXPDO_SIZE] = {0}; /* 应用从本地数据区取出的副本。 */
+    uint8_t pdi_tx[EC_TXPDO_SIZE] = {0}; /* 应用准备交给本地数据区的反馈。 */
+
+    /* 第 1 步：主站仍用原打包函数。本阶段的新目标为 9000。
+     * 只改变后面的新演示，不覆盖前面各课的 2000/4000/6000/7000。 */
+    master_command.target_position = 9000;
+    EC_PackRxPDO(image.outputs, &master_command);
+    PrintBytes("Mapped master outputs", image.outputs, EC_RXPDO_SIZE);
+
+    /* 第 2 步：EtherCAT 侧写逻辑地址 0，FMMU 换算成 0x1000。
+     * Translate 成功只表示地址匹配；随后 SM_Write 才复制数据。
+     * 真实硬件中由 ESC 完成；本程序用两个调用展示职责。 */
+    if (!EC_FMMU_Translate(&rx_fmmu, EC_FMMU_WRITE, 0x00000000,
+                           EC_RXPDO_SIZE, &physical_address) ||
+        EC_SM_Write(&sm2, EC_SM_ETHERCAT_SIDE, physical_address,
+                    image.outputs, EC_RXPDO_SIZE) != EC_SM_OK) {
+        return 1;
+    }
+    printf("Rx mapping: logical=0x00000000 -> physical=0x%04X, length=6\n",
+           (unsigned int)physical_address);
+
+    /* 第 3 步：从站应用经 PDI 侧读 SM2，再解包为原来的命令变量。
+     * 目标位置更新发生在 Unpack，不是仅凭写 DPRAM 就自动更新。
+     * 字典一直指向此变量，因此也能读到新的 9000。 */
+    if (EC_SM_Read(&sm2, EC_SM_PDI_SIDE, sm2.physical_start,
+                   pdi_rx, EC_RXPDO_SIZE) != EC_SM_OK) {
+        return 1;
+    }
+    EC_UnpackRxPDO(&slave_command, pdi_rx);
+    printf("PDI RxPDO: slave target_position=%" PRId32 "\n",
+           slave_command.target_position);
+    if (EC_OD_ReadI32(&od, 0x607A, 0, &od_value) != EC_OD_OK) {
+        return 1;
+    }
+    printf("OD sees mapped target=%" PRId32 "\n", od_value);
+
+    /* 第 4 步：反馈沿反方向返回。实际位置仍使用你的 300。
+     * 应用打包 -> PDI 写 SM3 -> 主站逻辑读映射到 0x1010 -> 解包。
+     * 与 Rx 相反，这次 PDI 侧是生产者，EtherCAT 侧是消费者。 */
+    EC_PackTxPDO(pdi_tx, &slave_feedback);
+    if (EC_SM_Write(&sm3, EC_SM_PDI_SIDE, sm3.physical_start,
+                    pdi_tx, EC_TXPDO_SIZE) != EC_SM_OK ||
+        !EC_FMMU_Translate(&tx_fmmu, EC_FMMU_READ, 0x00000010,
+                           EC_TXPDO_SIZE, &physical_address) ||
+        EC_SM_Read(&sm3, EC_SM_ETHERCAT_SIDE, physical_address,
+                   image.inputs, EC_TXPDO_SIZE) != EC_SM_OK) {
+        return 1;
+    }
+    printf("Tx mapping: logical=0x00000010 -> physical=0x%04X, length=6\n",
+           (unsigned int)physical_address);
+    PrintBytes("Mapped master inputs", image.inputs, EC_TXPDO_SIZE);
+    EC_UnpackTxPDO(&master_feedback, image.inputs);
+    printf("Mapped feedback: actual_position=%" PRId32 "\n",
+           master_feedback.actual_position);
+
+    /* 第 5 步：两个有意构造的失败，只检查，不改原数据。
+     * 0x20 不在 Rx 映射区间内；PDI 侧也不能向 Rx 通道写命令。 */
+    bool matched = EC_FMMU_Translate(&rx_fmmu, EC_FMMU_WRITE, 0x00000020,
+                                    EC_RXPDO_SIZE, &physical_address);
+    printf("Unmapped logical 0x00000020: %s\n", matched ? "MATCHED" : "REJECTED");
+    EC_SM_Result wrong_side = EC_SM_Write(&sm2, EC_SM_PDI_SIDE,
+                                          sm2.physical_start, image.outputs,
+                                          EC_RXPDO_SIZE);
+    printf("PDI write to Rx SM2: %s, slave target_position=%" PRId32 "\n",
+           EC_SM_ResultName(wrong_side), slave_command.target_position);
+    if (matched || wrong_side != EC_SM_WRONG_DIRECTION) {
         return 1;
     }
     return 0;
