@@ -6,6 +6,8 @@
 
 学习安排（2026-10-05）：学习者要求一次生成后续课程并结束本阶段。原编号课程到第十三课结束；另附 FreeRTOS 架构与 STM32F407 + LAN9252 迁移阅读资料。暂缓硬件实操，每课保留中文注释、流程图、小步练习和参考答案。
 
+**求职与复习入口：[项目收尾与求职材料](docs/求职总结/README.md)**。包含可复制的简历稿、一份覆盖全课程的复习总结、48 道面试问题和 6 道现场小题；面向机器人/工业控制嵌入式软件岗位，按实际软件成果表述。
+
 ## 学习进度与课程版本
 
 | 课程 | 内容 | 状态 | 固定版本 |
@@ -24,20 +26,21 @@
 
 ## 目录导航
 
+- [项目收尾与求职材料](docs/求职总结/README.md)：简历描述、项目讲述、全课程总结与面试演练。
 - [软件课程结课导航](docs/软件课程结课导航.md)：剩余课程入口、阅读顺序、运行命令及带答案的自查题。
 - [项目交接文档](项目交接文档.md)：第一至第五课、最终目标及课程规划。
-- [纯 C 从站模拟器](EtherCAT_Slave_Simulator/README.md)：第六课说明及累计代码。
-- [第七课对象字典说明](EtherCAT_Slave_Simulator/Lesson_07_对象字典.md)：已完课，保留练习成果。
-- [第八课 Mailbox 与 SDO 说明](EtherCAT_Slave_Simulator/Lesson_08_Mailbox与SDO.md)：已学习的第一小节。
-- [第八课第二步：SDO 字节格式](EtherCAT_Slave_Simulator/Lesson_08_第二步_SDO字节格式.md)：已完课，包含布局表、流程图和练习。
-- [第九课：SyncManager 与 FMMU](EtherCAT_Slave_Simulator/Lesson_09_SyncManager与FMMU.md)：已完课，含地址表、流程图、练习、参考答案和排错经验。
-- [第十课：CiA402 基础](EtherCAT_Slave_Simulator/Lesson_10_CiA402基础.md)：已完课，含请求与反馈、状态掩码、流程图和练习答案。
-- [第十课补讲](EtherCAT_Slave_Simulator/Lesson_10_补讲_从请求到反馈.md)：按请求、报告和代码四步重新展开。
-- [第十一课第一步：正常使能路径](EtherCAT_Slave_Simulator/Lesson_11_CiA402状态机.md)：第一小节已完成，含流程图、中文语法说明和 false 练习成果。
-- [第十一课第二步：快速停止](EtherCAT_Slave_Simulator/Lesson_11_第二步_快速停止.md)：已完成，区分停止请求与本地完成事件，含流程图、练习和答案。
-- [第十一课第三步：故障与复位](EtherCAT_Slave_Simulator/Lesson_11_第三步_故障与复位.md)：已归档，区分处理完成、原因消失和新的复位请求，含流程图与答案。
-- [第十二课：位置、速度、扭矩模式](EtherCAT_Slave_Simulator/Lesson_12_位置速度扭矩模式.md)：独立示例、13 字节 PDO、模型边界及练习答案。
-- [第十三课：周期任务、看门狗与诊断](EtherCAT_Slave_Simulator/Lesson_13_周期任务看门狗与诊断.md)：完整周期顺序、超时停止、恢复锁存及练习答案。
+- [纯 C 从站模拟器](EtherCAT_Slave_Simulator/notebook/Lesson_06_PDO.md)：第六课说明及累计代码。
+- [第七课对象字典说明](EtherCAT_Slave_Simulator/notebook/Lesson_07_对象字典.md)：已完课，保留练习成果。
+- [第八课 Mailbox 与 SDO 说明](EtherCAT_Slave_Simulator/notebook/Lesson_08_Mailbox与SDO.md)：已学习的第一小节。
+- [第八课第二步：SDO 字节格式](EtherCAT_Slave_Simulator/notebook/Lesson_08_第二步_SDO字节格式.md)：已完课，包含布局表、流程图和练习。
+- [第九课：SyncManager 与 FMMU](EtherCAT_Slave_Simulator/notebook/Lesson_09_SyncManager与FMMU.md)：已完课，含地址表、流程图、练习、参考答案和排错经验。
+- [第十课：CiA402 基础](EtherCAT_Slave_Simulator/notebook/Lesson_10_CiA402基础.md)：已完课，含请求与反馈、状态掩码、流程图和练习答案。
+- [第十课补讲](EtherCAT_Slave_Simulator/notebook/Lesson_10_补讲_从请求到反馈.md)：按请求、报告和代码四步重新展开。
+- [第十一课第一步：正常使能路径](EtherCAT_Slave_Simulator/notebook/Lesson_11_CiA402状态机.md)：第一小节已完成，含流程图、中文语法说明和 false 练习成果。
+- [第十一课第二步：快速停止](EtherCAT_Slave_Simulator/notebook/Lesson_11_第二步_快速停止.md)：已完成，区分停止请求与本地完成事件，含流程图、练习和答案。
+- [第十一课第三步：故障与复位](EtherCAT_Slave_Simulator/notebook/Lesson_11_第三步_故障与复位.md)：已归档，区分处理完成、原因消失和新的复位请求，含流程图与答案。
+- [第十二课：位置、速度、扭矩模式](EtherCAT_Slave_Simulator/notebook/Lesson_12_位置速度扭矩模式.md)：独立示例、13 字节 PDO、模型边界及练习答案。
+- [第十三课：周期任务、看门狗与诊断](EtherCAT_Slave_Simulator/notebook/Lesson_13_周期任务看门狗与诊断.md)：完整周期顺序、超时停止、恢复锁存及练习答案。
 - [附录 A：FreeRTOS 架构](docs/后续课程_附录A_FreeRTOS架构.md)：任务职责、共享数据与周期测量的阅读资料。
 - [附录 B：STM32 与 LAN9252 迁移](docs/后续课程_附录B_STM32与LAN9252迁移.md)：后续迁移路线，当前不要求板卡实操。
 - [程序运行流程图](docs/程序运行流程图.md)：main 的整体顺序及一次 SDO 事务的展开图。

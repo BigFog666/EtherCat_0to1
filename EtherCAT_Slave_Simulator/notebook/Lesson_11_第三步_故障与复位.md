@@ -98,7 +98,7 @@ flowchart TD
 
 ## 6. C 代码先看这两处
 
-打开 [cia402_fault.c](CiA402/cia402_fault.c)，先读上升沿判断：
+打开 [cia402_fault.c](../CiA402/cia402_fault.c)，先读上升沿判断：
 
 ```c
 bool reset_bit = (controlword & CIA402_CW_FAULT_RESET) != 0u;
@@ -118,7 +118,7 @@ if (reset_rising && !fault_active) {
 
 它表达“只有新请求，并且故障原因已经消失，才退出锁存故障”。`*state` 的作用与前两小节相同：修改调用者的状态变量。
 
-在 [main.c](main.c) 搜索 `第十一课第三步`。重点读循环第 2、3 步，先理解 ProcessFault 在 UpdateState 前执行。故障反应阶段、FAULT 阶段不执行普通命令；复位帧也不会在同一轮顺便执行普通使能。
+在 [main.c](../main.c) 搜索 `第十一课第三步`。重点读循环第 2、3 步，先理解 ProcessFault 在 UpdateState 前执行。故障反应阶段、FAULT 阶段不执行普通命令；复位帧也不会在同一轮顺便执行普通使能。
 
 ## 7. 只改一个值的练习
 
@@ -145,4 +145,4 @@ bool lesson11_fault_cleared = true;
 
 累计代码现在能生成七种状态的最小编码；NOT_READY_TO_SWITCH_ON 初始化过程仍未实现，不宣称已经实现完整 CiA402。快速停止仍固定为 Option Code 2，未实现真实故障检测、保护动作、错误码字典、运行模式、电机或实时循环。
 
-第三步测试在 [verify_lesson11_part3.c](tests/verify_lesson11_part3.c)，可先跳过实现；验证及关键结果见[学习记录](../docs/学习记录.md)。`lesson-11-part3-start` 保存开始版本，`lesson-11` 保存完课版本。归档时原因消失条件仍为 true，严格编译运行通过；不将 false 可选练习记为学习者已完成。
+第三步测试在 [verify_lesson11_part3.c](../tests/verify_lesson11_part3.c)，可先跳过实现；验证及关键结果见[学习记录](../../docs/学习记录.md)。`lesson-11-part3-start` 保存开始版本，`lesson-11` 保存完课版本。归档时原因消失条件仍为 true，严格编译运行通过；不将 false 可选练习记为学习者已完成。

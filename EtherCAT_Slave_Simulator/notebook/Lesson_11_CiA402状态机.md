@@ -91,7 +91,7 @@ flowchart TD
 
 ## 4. 新代码先读这些
 
-先打开 [main.c](main.c)，搜索 `第十一课第一步`，找到：
+先打开 [main.c](../main.c)，搜索 `第十一课第一步`，找到：
 
 ```c
 CIA402_DriveState drive = CIA402_SWITCH_ON_DISABLED;
@@ -116,7 +116,7 @@ CIA402_EncodeStatusword(drive, &slave_feedback.statusword);
 
 main 中实际用 `if` 检查两个函数是否返回成功，上面省略检查只是便于看清参数。`UpdateState` 返回 true 表示本小节支持这次输入，不承诺状态改变；第 1、4 步都返回 true，同时保持原状态。
 
-最后打开 [cia402_state.c](CiA402/cia402_state.c)，先读这个分支：
+最后打开 [cia402_state.c](../CiA402/cia402_state.c)，先读这个分支：
 
 ```c
 case CIA402_SWITCHED_ON:
@@ -175,4 +175,4 @@ bool lesson11_enable_condition = false;
 
 第一小节完成时，学习者已将 `lesson11_enable_condition` 改为 false，严格编译运行通过：第 5 步反馈为 `0x0023`，operation_enabled=0；目标仍为 10000，实际仍为 300。上方 true 示例保留为开始版本对照，当前累计工程保留学习者的 false 修改。
 
-本节测试源在 [verify_lesson11.c](tests/verify_lesson11.c)，可先跳过。关键运行结果及实际验证记录见 [学习记录](../docs/学习记录.md)。生成的 exe 和练习验证临时文件仅放在忽略的 build 目录，不上传。`lesson-11-start` 固定保存开始版本，`lesson-11-part1` 固定保存本小节成果，`lesson-11` 保存整课归档。
+本节测试源在 [verify_lesson11.c](../tests/verify_lesson11.c)，可先跳过。关键运行结果及实际验证记录见 [学习记录](../../docs/学习记录.md)。生成的 exe 和练习验证临时文件仅放在忽略的 build 目录，不上传。`lesson-11-start` 固定保存开始版本，`lesson-11-part1` 固定保存本小节成果，`lesson-11` 保存整课归档。
