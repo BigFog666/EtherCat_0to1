@@ -84,8 +84,14 @@ int main(void)
         uint16_t unchanged = 0xAAAA;
         assert(!CIA402_UpdateState(&drive, 0x0000, true));
         assert(drive == unsupported_states[i]);
-        assert(!CIA402_EncodeStatusword(drive, &unchanged));
-        assert(unchanged == 0xAAAA);
+        if (drive == CIA402_FAULT_REACTION_ACTIVE || drive == CIA402_FAULT) {
+            /* 第三步新增故障编码，但普通 UpdateState 仍不处理故障。 */
+            assert(CIA402_EncodeStatusword(drive, &unchanged));
+            assert(CIA402_DecodeStatusword(unchanged) == drive);
+        } else {
+            assert(!CIA402_EncodeStatusword(drive, &unchanged));
+            assert(unchanged == 0xAAAA);
+        }
     }
     assert(!CIA402_UpdateState(NULL, 0x0006, true));
     assert(!CIA402_EncodeStatusword(CIA402_SWITCHED_ON, NULL));

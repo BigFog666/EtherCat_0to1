@@ -12,6 +12,7 @@
 #define CIA402_CW_SWITCH_ON        0x0007u
 #define CIA402_CW_ENABLE_OPERATION 0x000Fu
 #define CIA402_CW_QUICK_STOP       0x0002u /* 第十一课第二步：快速停止请求。 */
+#define CIA402_CW_FAULT_RESET      0x0080u /* 第三步：bit7 的上升沿请求复位。 */
 
 /* 控制字 bit7、bit3～0 是本课关注的命令位。
  * 其他位可能用于模式命令，例如 bit4，不应要求整个字等于 0x000F。

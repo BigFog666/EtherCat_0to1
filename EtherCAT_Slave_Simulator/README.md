@@ -2,7 +2,7 @@
 
 当前累计工程已加入[第七课：对象字典](Lesson_07_对象字典.md)、[第八课第一步：Mailbox 与 SDO 请求/响应](Lesson_08_Mailbox与SDO.md)及[第八课第二步：SDO 字节格式](Lesson_08_第二步_SDO字节格式.md)。本文件保留第六课讲解和当时的基线输出；当前运行还会打印后续课程演示。
 
-第九课已完成，说明与排错经验见[SyncManager 与 FMMU](Lesson_09_SyncManager与FMMU.md)。[第十课：CiA402 基础](Lesson_10_CiA402基础.md)已完成，保留状态样例 0x0023 的练习。[第十一课第一步](Lesson_11_CiA402状态机.md)已完成，保留进入条件 false。当前学习[第十一课第二步：快速停止](Lesson_11_第二步_快速停止.md)，新增快速停止状态及本地完成事件。尚未实现完整 CoE/Mailbox 封装或真实网络通信。
+第九课已完成，说明与排错经验见[SyncManager 与 FMMU](Lesson_09_SyncManager与FMMU.md)。[第十课：CiA402 基础](Lesson_10_CiA402基础.md)已完成，保留状态样例 0x0023 的练习。[第十一课第一步](Lesson_11_CiA402状态机.md)已完成，保留进入条件 false；[第二步：快速停止](Lesson_11_第二步_快速停止.md)已完成，停止完成条件仍为 true。当前学习[第三步：故障与复位](Lesson_11_第三步_故障与复位.md)，新增故障反应、故障锁存及复位沿。尚未实现完整 CoE/Mailbox 封装或真实网络通信。
 
 第六课目标：用标准 C 观察「应用变量 → PDO 字节 → 应用变量」。当时版本只有简化状态切换和固定 PDO 布局；累计代码已增加对象字典、SDO 请求/响应语义模拟、软件 ESC 数据路径及部分 CiA402 逻辑。尚无真实网络报文、硬件 ESC 通信、完整 SDO 协议、完整 CiA402 状态机或电机模型。一次数据交换不代表已实现 1 ms 实时周期。
 
@@ -14,7 +14,7 @@
 .\EtherCAT_Slave_Simulator\build.ps1
 ```
 
-程序由 main.c、EtherCAT 目录下的 ethercat_state.c、ethercat_pdo.c、ethercat_od.c、ethercat_sdo.c、ethercat_sdo_wire.c、ethercat_sm.c、ethercat_fmmu.c 及 CiA402/cia402.c、CiA402/cia402_state.c 编译而成，生成 build/ethercat_sim.exe。构建脚本也会运行程序。
+程序由 main.c、EtherCAT 目录下的 ethercat_state.c、ethercat_pdo.c、ethercat_od.c、ethercat_sdo.c、ethercat_sdo_wire.c、ethercat_sm.c、ethercat_fmmu.c 及 CiA402/cia402.c、CiA402/cia402_state.c、CiA402/cia402_fault.c 编译而成，生成 build/ethercat_sim.exe。构建脚本也会运行程序。
 
 ## 1. 先分清方向
 
@@ -136,7 +136,7 @@ Master received: statusword=0x0000, actual_position=0
 
 ```powershell
 New-Item -ItemType Directory -Path .\EtherCAT_Slave_Simulator\build -Force | Out-Null
-gcc -std=c11 -Wall -Wextra -Wpedantic -Werror .\EtherCAT_Slave_Simulator\main.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_state.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_pdo.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_od.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_sdo.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_sdo_wire.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_sm.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_fmmu.c .\EtherCAT_Slave_Simulator\CiA402\cia402.c .\EtherCAT_Slave_Simulator\CiA402\cia402_state.c -o .\EtherCAT_Slave_Simulator\build\ethercat_sim.exe
+gcc -std=c11 -Wall -Wextra -Wpedantic -Werror .\EtherCAT_Slave_Simulator\main.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_state.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_pdo.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_od.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_sdo.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_sdo_wire.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_sm.c .\EtherCAT_Slave_Simulator\EtherCAT\ethercat_fmmu.c .\EtherCAT_Slave_Simulator\CiA402\cia402.c .\EtherCAT_Slave_Simulator\CiA402\cia402_state.c .\EtherCAT_Slave_Simulator\CiA402\cia402_fault.c -o .\EtherCAT_Slave_Simulator\build\ethercat_sim.exe
 ```
 
 确认编译成功后再执行：

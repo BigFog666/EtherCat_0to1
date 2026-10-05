@@ -10,6 +10,7 @@
 #include "EtherCAT/ethercat_fmmu.h" /* 第九课：逻辑地址换成本地地址。 */
 #include "CiA402/cia402.h" /* 第十课：控制字的请求与状态字的报告。 */
 #include "CiA402/cia402_state.h" /* 第十一课：更新状态并生成报告。 */
+#include "CiA402/cia402_fault.h" /* 第十一课第三步：故障、本地事件与复位沿。 */
 
 /* 辅助观察：按十六进制打印缓冲区，不参与通信或控制。
  * 当前先关注打印出的字节，不需要自己重写这个函数。 */
@@ -555,6 +556,96 @@ int main(void)
                (unsigned int)CIA402_IsOperationEnabled(master_feedback.statusword));
     }
     printf("Quick Stop model: communication=%s, target_position=%" PRId32
+           ", actual_position=%" PRId32 "\n", EC_StateName(state),
+           slave_command.target_position, master_feedback.actual_position);
+
+    /* 第十一课第三步：独立的故障与复位场景，不覆盖前两小节练习。
+     * 故障原因和处理完成来自从站本地，复位请求来自主站控制字。
+     * 先进入运行，再模拟故障；已复位也只回到禁止接通，不自动运行。 */
+    puts("\nLesson 11, part 3: Fault reaction and reset rising edge");
+    drive = CIA402_SWITCH_ON_DISABLED;
+    bool previous_reset_bit = false; /* 每个驱动自己的历史，不能每轮重新清零。 */
+    bool lesson11_fault_cleared = true; /* 新练习：改 false，模拟原因一直存在。 */
+    const struct {
+        uint16_t controlword;
+        bool fault_active;       /* 原因仍存在，和“是否处于 Fault”不同。 */
+        bool reaction_completed; /* 故障处理动作完成，和“原因消失”不同。 */
+    } fault_steps[] = {
+        {CIA402_CW_SHUTDOWN, false, false},
+        {CIA402_CW_SWITCH_ON, false, false},
+        {CIA402_CW_ENABLE_OPERATION, false, false},
+        {CIA402_CW_ENABLE_OPERATION, true, false}, /* 新故障优先于运行请求。 */
+        {CIA402_CW_FAULT_RESET, true, false}, /* 太早复位，不退出故障反应。 */
+        {0x0000, true, true}, /* 处理完成，进入 Fault；原因仍在。 */
+        {CIA402_CW_FAULT_RESET, true, false}, /* 有上升沿，但原因未消失。 */
+        {CIA402_CW_FAULT_RESET, !lesson11_fault_cleared, false}, /* 持续高位，不是新请求。 */
+        {0x0000, !lesson11_fault_cleared, false}, /* 先把复位位恢复为 0。 */
+        {CIA402_CW_FAULT_RESET, !lesson11_fault_cleared, false}, /* 再发上升沿。 */
+        {CIA402_CW_FAULT_RESET, !lesson11_fault_cleared, false}, /* 重复高位，不自动使能。 */
+        {CIA402_CW_SHUTDOWN, !lesson11_fault_cleared, false},
+        {CIA402_CW_SWITCH_ON, !lesson11_fault_cleared, false},
+        {CIA402_CW_ENABLE_OPERATION, !lesson11_fault_cleared, false}
+    };
+    for (size_t i = 0; i < sizeof fault_steps / sizeof fault_steps[0]; ++i) {
+        CIA402_DriveState previous = drive;
+
+        /* 第 1 步：沿用 PDO 请求路径，获得本次主站控制字。 */
+        master_command.controlword = fault_steps[i].controlword;
+        EC_PackRxPDO(image.outputs, &master_command);
+        if (!EC_FMMU_Translate(&rx_fmmu, EC_FMMU_WRITE, 0x00000000,
+                               EC_RXPDO_SIZE, &physical_address) ||
+            EC_SM_Write(&sm2, EC_SM_ETHERCAT_SIDE, physical_address,
+                        image.outputs, EC_RXPDO_SIZE) != EC_SM_OK ||
+            EC_SM_Read(&sm2, EC_SM_PDI_SIDE, sm2.physical_start,
+                       pdi_rx, EC_RXPDO_SIZE) != EC_SM_OK) {
+            return 1;
+        }
+        EC_UnpackRxPDO(&slave_command, pdi_rx);
+
+        /* 第 2 步：保存本次上升沿供打印，再优先处理故障和复位。
+         * ProcessFault 每轮更新历史，包括不能复位的轮次。
+         * 不能把“本轮收到了 0080”直接当成“故障已消失”。 */
+        bool reset_rising = (slave_command.controlword & CIA402_CW_FAULT_RESET) != 0u &&
+                            !previous_reset_bit;
+        if (!CIA402_ProcessFault(&drive, slave_command.controlword, &previous_reset_bit,
+                                 fault_steps[i].fault_active,
+                                 fault_steps[i].reaction_completed)) {
+            return 1;
+        }
+
+        /* 第 3 步：只有普通状态、且不是复位请求，才处理普通命令。
+         * 故障中不会因为 0000 或 000F 而绕过故障锁存。
+         * 0080 / 008F 等复位帧也不会在同一轮顺便执行普通使能。 */
+        if (drive != CIA402_FAULT_REACTION_ACTIVE && drive != CIA402_FAULT &&
+            (slave_command.controlword & CIA402_CW_FAULT_RESET) == 0u &&
+            !CIA402_UpdateState(&drive, slave_command.controlword, true)) {
+            return 1;
+        }
+        if (!CIA402_EncodeStatusword(drive, &slave_feedback.statusword)) {
+            return 1;
+        }
+
+        /* 第 4 步：反馈仍经过原 TxPDO 路径，再由主站解码。 */
+        EC_PackTxPDO(pdi_tx, &slave_feedback);
+        if (EC_SM_Write(&sm3, EC_SM_PDI_SIDE, sm3.physical_start,
+                        pdi_tx, EC_TXPDO_SIZE) != EC_SM_OK ||
+            !EC_FMMU_Translate(&tx_fmmu, EC_FMMU_READ, 0x00000010,
+                               EC_TXPDO_SIZE, &physical_address) ||
+            EC_SM_Read(&sm3, EC_SM_ETHERCAT_SIDE, physical_address,
+                       image.inputs, EC_TXPDO_SIZE) != EC_SM_OK) {
+            return 1;
+        }
+        EC_UnpackTxPDO(&master_feedback, image.inputs);
+        printf("Fault step %zu: cw=0x%04X, cause=%u, reaction_done=%u, reset_rising=%u, %s -> %s, sw=0x%04X, operation_enabled=%u\n",
+               i + 1u, (unsigned int)slave_command.controlword,
+               (unsigned int)fault_steps[i].fault_active,
+               (unsigned int)fault_steps[i].reaction_completed,
+               (unsigned int)reset_rising, CIA402_StateName(previous),
+               CIA402_StateName(CIA402_DecodeStatusword(master_feedback.statusword)),
+               (unsigned int)master_feedback.statusword,
+               (unsigned int)CIA402_IsOperationEnabled(master_feedback.statusword));
+    }
+    printf("Fault model: communication=%s, target_position=%" PRId32
            ", actual_position=%" PRId32 "\n", EC_StateName(state),
            slave_command.target_position, master_feedback.actual_position);
     return 0;

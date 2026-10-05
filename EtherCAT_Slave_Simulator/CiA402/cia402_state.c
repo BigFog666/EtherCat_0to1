@@ -18,7 +18,7 @@ bool CIA402_UpdateState(CIA402_DriveState *state, uint16_t controlword,
     case CIA402_QUICK_STOP_ACTIVE:
         break;
     default:
-        return false; /* 故障等状态尚未实现，不能假装处理成功。 */
+        return false; /* 故障由 ProcessFault 处理，此函数只处理普通状态。 */
     }
 
     /* 只检查命令有意义的位，忽略无关的模式位。
@@ -33,7 +33,7 @@ bool CIA402_UpdateState(CIA402_DriveState *state, uint16_t controlword,
      * 因而 0x0002、0x0003、0x000B 等都能表示这一请求。 */
     bool quick_stop = (controlword & 0x0086u) == CIA402_CW_QUICK_STOP;
     if (!shutdown && !switch_on && !enable_operation && !disable_voltage && !quick_stop) {
-        return false; /* 例如 Fault Reset，留到后续小节。 */
+        return false; /* Fault Reset 交给第三步的 ProcessFault，不作为普通命令。 */
     }
     if (disable_voltage) {
         /* 正常四个状态及快速停止都能回到禁止接通；这里只改软件状态。 */
@@ -112,7 +112,7 @@ bool CIA402_EncodeStatusword(CIA402_DriveState state, uint16_t *statusword)
     if (statusword == NULL) {
         return false;
     }
-    /* 编码与第十课的解码对应，第二步新增快速停止状态。
+    /* 编码与第十课的解码对应，第二步加快速停止，第三步加两个故障状态。
      * 状态字不是控制字的复制：命令 0x000F 成功后反馈 0x0027。 */
     switch (state) {
     case CIA402_SWITCH_ON_DISABLED: *statusword = 0x0040u; break;
@@ -120,6 +120,8 @@ bool CIA402_EncodeStatusword(CIA402_DriveState state, uint16_t *statusword)
     case CIA402_SWITCHED_ON: *statusword = 0x0023u; break;
     case CIA402_OPERATION_ENABLED: *statusword = 0x0027u; break;
     case CIA402_QUICK_STOP_ACTIVE: *statusword = 0x0007u; break;
+    case CIA402_FAULT_REACTION_ACTIVE: *statusword = 0x000Fu; break;
+    case CIA402_FAULT: *statusword = 0x0008u; break;
     default: return false;
     }
     return true;
