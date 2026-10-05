@@ -2,7 +2,7 @@
 
 学习目标：从纯 C 软件模拟器出发，逐步理解 EtherCAT、PDO/SDO、CoE 对象字典和 CiA402，后续迁移到 STM32 + FreeRTOS + ESC 的单关节控制器。
 
-当前主线：**第十一课学习中，第一步为 CiA402 正常使能路径**。第十课已完成；保留目标位置 10000、本地 Rx 地址 0x1020，以及第十课状态样例 0x0023 的练习。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
+当前主线：**第十一课第一小节已完成，下一小节为快速停止**。保留第一小节进入条件 false 的练习，目标位置 10000、本地 Rx 地址 0x1020，以及第十课状态样例 0x0023。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
 
 学习安排（2026-10-05）：开发板虽已到货，学习者选择先完成原来的软件课程。当前继续纯 C 模拟器主线，暂缓硬件实操，保持每课中文注释、流程图、小步练习和参考答案。
 
@@ -16,7 +16,7 @@
 | 08 | Mailbox、CoE 与 SDO | 已完成 | [lesson-08](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08)；[第二小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part2-start)；[第一小节归档](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part1) |
 | 09 | SyncManager 与 FMMU | 已完成 | [lesson-09](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-09)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-09-start) |
 | 10 | CiA402 基础：控制字与状态字 | 已完成 | [lesson-10](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-10)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-10-start) |
-| 11 | CiA402 状态机，第一步：正常使能路径 | 学习中，尚未完课 | [开始版本 lesson-11-start](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-start) |
+| 11 | CiA402 状态机 | 第一小节已完成，整课尚未完课 | [第一小节成果 lesson-11-part1](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part1)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-start) |
 
 第六课版本是在建立 Git 仓库时，根据本次聊天及现有文件重建的归档，不是当时已经存在的 Git 提交。保留了学习者完成的目标位置 2000、实际位置 300，以及中文注释和兼容的构建脚本。第七课开始版本不表示第七课已经完成。
 

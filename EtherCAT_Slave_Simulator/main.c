@@ -412,7 +412,7 @@ int main(void)
      * 通信状态 state 仍为 OP；驱动状态保存在另一个变量 drive 中。 */
     puts("\nLesson 11, part 1: CiA402 normal enable path");
     CIA402_DriveState drive = CIA402_SWITCH_ON_DISABLED;
-    bool lesson11_enable_condition = true; /* 练习：只把这里改成 false。 */
+    bool lesson11_enable_condition = false; /* 你完成的练习：第五步仍未使能。 */
     const struct {
         uint16_t controlword;       /* 这一步主站发送的请求。 */
         bool enable_condition_met; /* 从站本地条件，不在 PDO 中。 */
