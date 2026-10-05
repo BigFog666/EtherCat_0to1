@@ -9,6 +9,7 @@
 #include "EtherCAT/ethercat_sm.h" /* 第九课：本地过程数据区的访问规则。 */
 #include "EtherCAT/ethercat_fmmu.h" /* 第九课：逻辑地址换成本地地址。 */
 #include "CiA402/cia402.h" /* 第十课：控制字的请求与状态字的报告。 */
+#include "CiA402/cia402_state.h" /* 第十一课：更新状态并生成报告。 */
 
 /* 辅助观察：按十六进制打印缓冲区，不参与通信或控制。
  * 当前先关注打印出的字节，不需要自己重写这个函数。 */
@@ -404,5 +405,83 @@ int main(void)
     }
     printf("Communication state=%s; feedback samples are supplied by the lesson.\n",
            EC_StateName(state));
+
+    /* 第十一课第一步：反馈改为由驱动状态机生成。
+     * 前面第十课的 0x0023 练习继续保留，不覆盖。
+     * 假定内部初始化完成，从禁止接通状态重新开始。
+     * 通信状态 state 仍为 OP；驱动状态保存在另一个变量 drive 中。 */
+    puts("\nLesson 11, part 1: CiA402 normal enable path");
+    CIA402_DriveState drive = CIA402_SWITCH_ON_DISABLED;
+    bool lesson11_enable_condition = true; /* 练习：只把这里改成 false。 */
+    const struct {
+        uint16_t controlword;       /* 这一步主站发送的请求。 */
+        bool enable_condition_met; /* 从站本地条件，不在 PDO 中。 */
+    } enable_steps[] = {
+        {CIA402_CW_ENABLE_OPERATION, true}, /* 太早请求：仍为禁止接通。 */
+        {CIA402_CW_SHUTDOWN, true},         /* 进入准备接通。 */
+        {CIA402_CW_SWITCH_ON, true},        /* 接通，尚未使能运行。 */
+        {CIA402_CW_ENABLE_OPERATION, false},/* 条件不满足：保持接通。 */
+        {CIA402_CW_ENABLE_OPERATION, lesson11_enable_condition}
+    };
+    if (!CIA402_EncodeStatusword(drive, &slave_feedback.statusword)) {
+        return 1;
+    }
+    printf("Initial drive=%s, statusword=0x%04X\n", CIA402_StateName(drive),
+           (unsigned int)slave_feedback.statusword);
+
+    /* 顺序处理五份命令，不是实时周期。
+     * 重点读第 2 步的新函数；第 1、3 步复用已学过的搬运路径。 */
+    for (size_t i = 0; i < sizeof enable_steps / sizeof enable_steps[0]; ++i) {
+        CIA402_DriveState previous = drive; /* 保存转换前状态，方便对比。 */
+
+        /* 第 1 步：打包请求，经 FMMU / SM2 / PDI，到从站解包。
+         * 沿用目标 10000、逻辑起点 0、本地起点 0x1020。 */
+        master_command.controlword = enable_steps[i].controlword;
+        EC_PackRxPDO(image.outputs, &master_command);
+        if (!EC_FMMU_Translate(&rx_fmmu, EC_FMMU_WRITE, 0x00000000,
+                               EC_RXPDO_SIZE, &physical_address) ||
+            EC_SM_Write(&sm2, EC_SM_ETHERCAT_SIDE, physical_address,
+                        image.outputs, EC_RXPDO_SIZE) != EC_SM_OK ||
+            EC_SM_Read(&sm2, EC_SM_PDI_SIDE, sm2.physical_start,
+                       pdi_rx, EC_RXPDO_SIZE) != EC_SM_OK) {
+            return 1;
+        }
+        EC_UnpackRxPDO(&slave_command, pdi_rx);
+
+        /* 第 2 步：本课新增的“应用决策”。
+         * &drive 是变量地址；函数通过 *state 修改这个变量。
+         * true 仅表示输入受支持，条件不满足时状态也可能保持原值。
+         * 再把更新后的状态编码，填入要发送的状态字。 */
+        if (!CIA402_UpdateState(&drive, slave_command.controlword,
+                                enable_steps[i].enable_condition_met) ||
+            !CIA402_EncodeStatusword(drive, &slave_feedback.statusword)) {
+            return 1;
+        }
+
+        /* 第 3 步：打包反馈，经 PDI / SM3 / FMMU，到主站解包。
+         * 实际位置仍为 300；使能不会让位置自动追随目标。 */
+        EC_PackTxPDO(pdi_tx, &slave_feedback);
+        if (EC_SM_Write(&sm3, EC_SM_PDI_SIDE, sm3.physical_start,
+                        pdi_tx, EC_TXPDO_SIZE) != EC_SM_OK ||
+            !EC_FMMU_Translate(&tx_fmmu, EC_FMMU_READ, 0x00000010,
+                               EC_TXPDO_SIZE, &physical_address) ||
+            EC_SM_Read(&sm3, EC_SM_ETHERCAT_SIDE, physical_address,
+                       image.inputs, EC_TXPDO_SIZE) != EC_SM_OK) {
+            return 1;
+        }
+        EC_UnpackTxPDO(&master_feedback, image.inputs);
+
+        /* 第 4 步：根据收到的反馈报告结果，不能只看刚发的请求。 */
+        printf("Step %zu: cw=0x%04X, condition=%u, %s -> %s, sw=0x%04X, operation_enabled=%u\n",
+               i + 1u, (unsigned int)slave_command.controlword,
+               (unsigned int)enable_steps[i].enable_condition_met,
+               CIA402_StateName(previous),
+               CIA402_StateName(CIA402_DecodeStatusword(master_feedback.statusword)),
+               (unsigned int)master_feedback.statusword,
+               (unsigned int)CIA402_IsOperationEnabled(master_feedback.statusword));
+    }
+    printf("Lesson 11: communication=%s, target_position=%" PRId32
+           ", actual_position=%" PRId32 "\n", EC_StateName(state),
+           slave_command.target_position, master_feedback.actual_position);
     return 0;
 }
