@@ -11,6 +11,7 @@
 #define CIA402_CW_SHUTDOWN         0x0006u
 #define CIA402_CW_SWITCH_ON        0x0007u
 #define CIA402_CW_ENABLE_OPERATION 0x000Fu
+#define CIA402_CW_QUICK_STOP       0x0002u /* 第十一课第二步：快速停止请求。 */
 
 /* 控制字 bit7、bit3～0 是本课关注的命令位。
  * 其他位可能用于模式命令，例如 bit4，不应要求整个字等于 0x000F。

@@ -483,5 +483,79 @@ int main(void)
     printf("Lesson 11: communication=%s, target_position=%" PRId32
            ", actual_position=%" PRId32 "\n", EC_StateName(state),
            slave_command.target_position, master_feedback.actual_position);
+
+    /* 第十一课第二步：快速停止请求与本地停止完成事件。
+     * 单独从禁止接通开始新场景，第一小节的 false 练习继续保留。
+     * 此场景进入条件固定为 true，先完成使能，再观察停止与重新使能。
+     * 固定模拟 Option Code = 2：停止完成后回到禁止接通。
+     * 没有电机减速计算，完成事件由下面的 bool 手工模拟。 */
+    puts("\nLesson 11, part 2: Quick Stop, option code 2 model");
+    drive = CIA402_SWITCH_ON_DISABLED;
+    bool lesson11_stop_completed = true; /* 新练习：改成 false，模拟停止尚未完成。 */
+    const struct {
+        uint16_t controlword; /* 主站通过 PDO 发送的请求。 */
+        bool stop_completed; /* 从站本地完成事件，不在 PDO 中。 */
+    } stop_steps[] = {
+        {CIA402_CW_SHUTDOWN, false},
+        {CIA402_CW_SWITCH_ON, false},
+        {CIA402_CW_ENABLE_OPERATION, false},
+        {CIA402_CW_QUICK_STOP, false}, /* 进入快速停止，尚未完成。 */
+        {CIA402_CW_ENABLE_OPERATION, false}, /* 使能请求不能打断这个停止过程。 */
+        {CIA402_CW_QUICK_STOP, lesson11_stop_completed}, /* 本地通知停止完成。 */
+        {CIA402_CW_SHUTDOWN, false}, /* 从禁止接通重新走正常路径。 */
+        {CIA402_CW_SWITCH_ON, false},
+        {CIA402_CW_ENABLE_OPERATION, false}
+    };
+    for (size_t i = 0; i < sizeof stop_steps / sizeof stop_steps[0]; ++i) {
+        CIA402_DriveState previous = drive;
+
+        /* 第 1 步：沿用第九课的接收路径，解包主站控制字。 */
+        master_command.controlword = stop_steps[i].controlword;
+        EC_PackRxPDO(image.outputs, &master_command);
+        if (!EC_FMMU_Translate(&rx_fmmu, EC_FMMU_WRITE, 0x00000000,
+                               EC_RXPDO_SIZE, &physical_address) ||
+            EC_SM_Write(&sm2, EC_SM_ETHERCAT_SIDE, physical_address,
+                        image.outputs, EC_RXPDO_SIZE) != EC_SM_OK ||
+            EC_SM_Read(&sm2, EC_SM_PDI_SIDE, sm2.physical_start,
+                       pdi_rx, EC_RXPDO_SIZE) != EC_SM_OK) {
+            return 1;
+        }
+        EC_UnpackRxPDO(&slave_command, pdi_rx);
+
+        /* 第 2 步：先处理命令，再处理本地完成事件，最后编码反馈。
+         * == 判断是否相等；只有快速停止状态才调用完成事件函数。
+         * 第 4 步完成输入为 false，因此反馈可以先观察到 0x0007。 */
+        if (!CIA402_UpdateState(&drive, slave_command.controlword, true)) {
+            return 1;
+        }
+        if (drive == CIA402_QUICK_STOP_ACTIVE &&
+            !CIA402_CompleteQuickStop(&drive, stop_steps[i].stop_completed)) {
+            return 1;
+        }
+        if (!CIA402_EncodeStatusword(drive, &slave_feedback.statusword)) {
+            return 1;
+        }
+
+        /* 第 3 步：沿用反馈路径，主站解包并解释新的状态字。 */
+        EC_PackTxPDO(pdi_tx, &slave_feedback);
+        if (EC_SM_Write(&sm3, EC_SM_PDI_SIDE, sm3.physical_start,
+                        pdi_tx, EC_TXPDO_SIZE) != EC_SM_OK ||
+            !EC_FMMU_Translate(&tx_fmmu, EC_FMMU_READ, 0x00000010,
+                               EC_TXPDO_SIZE, &physical_address) ||
+            EC_SM_Read(&sm3, EC_SM_ETHERCAT_SIDE, physical_address,
+                       image.inputs, EC_TXPDO_SIZE) != EC_SM_OK) {
+            return 1;
+        }
+        EC_UnpackTxPDO(&master_feedback, image.inputs);
+        printf("Stop step %zu: cw=0x%04X, stop_completed=%u, %s -> %s, sw=0x%04X, operation_enabled=%u\n",
+               i + 1u, (unsigned int)slave_command.controlword,
+               (unsigned int)stop_steps[i].stop_completed, CIA402_StateName(previous),
+               CIA402_StateName(CIA402_DecodeStatusword(master_feedback.statusword)),
+               (unsigned int)master_feedback.statusword,
+               (unsigned int)CIA402_IsOperationEnabled(master_feedback.statusword));
+    }
+    printf("Quick Stop model: communication=%s, target_position=%" PRId32
+           ", actual_position=%" PRId32 "\n", EC_StateName(state),
+           slave_command.target_position, master_feedback.actual_position);
     return 0;
 }

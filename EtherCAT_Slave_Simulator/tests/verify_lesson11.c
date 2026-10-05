@@ -68,7 +68,7 @@ int main(void)
             assert(CIA402_UpdateState(&drive, voltage_off[j], true));
             assert(drive == CIA402_SWITCH_ON_DISABLED);
         }
-        const uint16_t unsupported[] = {0x0002, 0x0003, 0x0080, 0x008F};
+        const uint16_t unsupported[] = {0x0080, 0x008F}; /* 第二步已支持 Quick Stop。 */
         for (size_t j = 0; j < sizeof unsupported / sizeof unsupported[0]; ++j) {
             drive = normal[i].state;
             assert(!CIA402_UpdateState(&drive, unsupported[j], true));
@@ -76,7 +76,7 @@ int main(void)
         }
     }
     const CIA402_DriveState unsupported_states[] = {
-        CIA402_NOT_READY_TO_SWITCH_ON, CIA402_QUICK_STOP_ACTIVE,
+        CIA402_NOT_READY_TO_SWITCH_ON,
         CIA402_FAULT_REACTION_ACTIVE, CIA402_FAULT, CIA402_UNKNOWN
     };
     for (size_t i = 0; i < sizeof unsupported_states / sizeof unsupported_states[0]; ++i) {
