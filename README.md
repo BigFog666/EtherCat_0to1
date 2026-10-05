@@ -2,7 +2,7 @@
 
 学习目标：从纯 C 软件模拟器出发，逐步理解 EtherCAT、PDO/SDO、CoE 对象字典和 CiA402，后续迁移到 STM32 + FreeRTOS + ESC 的单关节控制器。
 
-当前主线：**第十一课第三小节学习中：故障反应、锁存与复位上升沿**。保留第一小节进入条件 false，第二小节停止完成条件仍为 true，目标位置 10000、本地 Rx 地址 0x1020，以及第十课状态样例 0x0023。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
+当前主线：**学习者确认本阶段结束，第十一课已完成，剩余课程准备一次生成供独立学习**。保留第一小节进入条件 false，第二小节停止完成条件 true，第三小节原因消失条件 true，目标位置 10000、本地 Rx 地址 0x1020，以及第十课状态样例 0x0023。仓库中的 Windows SOEM 主站实验是辅助环境准备，尚未验证真实从站通信。
 
 学习安排（2026-10-05）：开发板虽已到货，学习者选择先完成原来的软件课程。当前继续纯 C 模拟器主线，暂缓硬件实操，保持每课中文注释、流程图、小步练习和参考答案。
 
@@ -16,7 +16,7 @@
 | 08 | Mailbox、CoE 与 SDO | 已完成 | [lesson-08](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08)；[第二小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part2-start)；[第一小节归档](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-08-part1) |
 | 09 | SyncManager 与 FMMU | 已完成 | [lesson-09](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-09)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-09-start) |
 | 10 | CiA402 基础：控制字与状态字 | 已完成 | [lesson-10](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-10)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-10-start) |
-| 11 | CiA402 状态机 | 前两小节已完成，第三小节学习中 | [第三小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part3-start)；[第二小节成果](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part2)；[第二小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part2-start)；[第一小节成果](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part1)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-start) |
+| 11 | CiA402 状态机 | 已完成本课教学范围 | [lesson-11](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11)；[第三小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part3-start)；[第二小节成果](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part2)；[第一小节成果](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part1) |
 
 第六课版本是在建立 Git 仓库时，根据本次聊天及现有文件重建的归档，不是当时已经存在的 Git 提交。保留了学习者完成的目标位置 2000、实际位置 300，以及中文注释和兼容的构建脚本。第七课开始版本不表示第七课已经完成。
 
@@ -32,7 +32,7 @@
 - [第十课补讲](EtherCAT_Slave_Simulator/Lesson_10_补讲_从请求到反馈.md)：按请求、报告和代码四步重新展开。
 - [第十一课第一步：正常使能路径](EtherCAT_Slave_Simulator/Lesson_11_CiA402状态机.md)：第一小节已完成，含流程图、中文语法说明和 false 练习成果。
 - [第十一课第二步：快速停止](EtherCAT_Slave_Simulator/Lesson_11_第二步_快速停止.md)：已完成，区分停止请求与本地完成事件，含流程图、练习和答案。
-- [第十一课第三步：故障与复位](EtherCAT_Slave_Simulator/Lesson_11_第三步_故障与复位.md)：学习中，区分处理完成、原因消失和新的复位请求，含流程图与答案。
+- [第十一课第三步：故障与复位](EtherCAT_Slave_Simulator/Lesson_11_第三步_故障与复位.md)：已归档，区分处理完成、原因消失和新的复位请求，含流程图与答案。
 - [程序运行流程图](docs/程序运行流程图.md)：main 的整体顺序及一次 SDO 事务的展开图。
 - [硬件与知识关系图](docs/硬件关系图/硬件与知识关系图.html)：按第九课起点整理的离线交互总图，串起 PC、ESC、STM32、电机与课程知识；最新进度以本 README 为准。
 - [学习记录](docs/学习记录.md)：每课新增内容、练习、验证及版本来源。

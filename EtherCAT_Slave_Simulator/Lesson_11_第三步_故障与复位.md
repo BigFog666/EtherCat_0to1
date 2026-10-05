@@ -1,6 +1,6 @@
 # 第十一课第三步：故障与复位
 
-开始版本：`lesson-11-part3-start`，当前学习中。前两小节分别归档为 `lesson-11-part1`、`lesson-11-part2`，整个第十一课尚未完课。继续纯 C 软件课程，暂缓开发板。
+开始版本：`lesson-11-part3-start`。学习者随后表示本阶段可以结束并要求一次生成后续课程，第十一课按本课教学范围归档为 `lesson-11`。前两小节成果为 `lesson-11-part1`、`lesson-11-part2`。继续纯 C 软件资料路线，暂缓开发板。
 
 本节先理解三件事：故障处理完成、故障原因消失、收到新的复位请求。它们不是同一个条件。
 
@@ -145,4 +145,4 @@ bool lesson11_fault_cleared = true;
 
 累计代码现在能生成七种状态的最小编码；NOT_READY_TO_SWITCH_ON 初始化过程仍未实现，不宣称已经实现完整 CiA402。快速停止仍固定为 Option Code 2，未实现真实故障检测、保护动作、错误码字典、运行模式、电机或实时循环。
 
-第三步测试在 [verify_lesson11_part3.c](tests/verify_lesson11_part3.c)，可先跳过实现；验证及关键结果见[学习记录](../docs/学习记录.md)。本次保存为 `lesson-11-part3-start`，等你确认学习结束后再归档完课版本。
+第三步测试在 [verify_lesson11_part3.c](tests/verify_lesson11_part3.c)，可先跳过实现；验证及关键结果见[学习记录](../docs/学习记录.md)。`lesson-11-part3-start` 保存开始版本，`lesson-11` 保存完课版本。归档时原因消失条件仍为 true，严格编译运行通过；不将 false 可选练习记为学习者已完成。
