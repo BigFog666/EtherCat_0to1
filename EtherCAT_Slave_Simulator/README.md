@@ -2,7 +2,9 @@
 
 当前累计工程已加入[第七课：对象字典](Lesson_07_对象字典.md)、[第八课第一步：Mailbox 与 SDO 请求/响应](Lesson_08_Mailbox与SDO.md)及[第八课第二步：SDO 字节格式](Lesson_08_第二步_SDO字节格式.md)。本文件保留第六课讲解和当时的基线输出；当前运行还会打印后续课程演示。
 
-第九课已完成，说明与排错经验见[SyncManager 与 FMMU](Lesson_09_SyncManager与FMMU.md)。[第十课：CiA402 基础](Lesson_10_CiA402基础.md)已完成，保留状态样例 0x0023 的练习。[第十一课第一步](Lesson_11_CiA402状态机.md)已完成，保留进入条件 false；[第二步：快速停止](Lesson_11_第二步_快速停止.md)已完成，停止完成条件仍为 true。当前学习[第三步：故障与复位](Lesson_11_第三步_故障与复位.md)，新增故障反应、故障锁存及复位沿。尚未实现完整 CoE/Mailbox 封装或真实网络通信。
+第九课已完成，说明与排错经验见[SyncManager 与 FMMU](Lesson_09_SyncManager与FMMU.md)。[第十课：CiA402 基础](Lesson_10_CiA402基础.md)已完成，保留状态样例 0x0023 的练习。第十一课已归档：保留[第一步](Lesson_11_CiA402状态机.md)进入条件 false、[第二步：快速停止](Lesson_11_第二步_快速停止.md)和[第三步：故障与复位](Lesson_11_第三步_故障与复位.md)条件 true。尚未实现完整 CoE/Mailbox 封装或真实网络通信。
+
+学习者要求一次生成剩余资料；[第十二课](Lesson_12_位置速度扭矩模式.md)与[第十三课](Lesson_13_周期任务看门狗与诊断.md)采用独立程序，课程已生成、待独立学习。阅读顺序及 FreeRTOS / 硬件参考见[结课导航](../docs/软件课程结课导航.md)。本文件以下内容保留第六课与累计 main 的范围；关节模型在独立 Further_Lessons 中。
 
 第六课目标：用标准 C 观察「应用变量 → PDO 字节 → 应用变量」。当时版本只有简化状态切换和固定 PDO 布局；累计代码已增加对象字典、SDO 请求/响应语义模拟、软件 ESC 数据路径及部分 CiA402 逻辑。尚无真实网络报文、硬件 ESC 通信、完整 SDO 协议、完整 CiA402 状态机或电机模型。一次数据交换不代表已实现 1 ms 实时周期。
 
@@ -15,6 +17,14 @@
 ```
 
 程序由 main.c、EtherCAT 目录下的 ethercat_state.c、ethercat_pdo.c、ethercat_od.c、ethercat_sdo.c、ethercat_sdo_wire.c、ethercat_sm.c、ethercat_fmmu.c 及 CiA402/cia402.c、CiA402/cia402_state.c、CiA402/cia402_fault.c 编译而成，生成 build/ethercat_sim.exe。构建脚本也会运行程序。
+
+剩余两课分别编译为 build/lesson12.exe、build/lesson13.exe 并运行：
+
+```powershell
+.\EtherCAT_Slave_Simulator\build_further.ps1 -Lesson All
+```
+
+`-Lesson 12` 或 `-Lesson 13` 可单独运行。第十三课是虚拟时间演示，尚未测得实际 1 ms 实时周期。
 
 ## 1. 先分清方向
 

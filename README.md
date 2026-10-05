@@ -2,9 +2,9 @@
 
 学习目标：从纯 C 软件模拟器出发，逐步理解 EtherCAT、PDO/SDO、CoE 对象字典和 CiA402，后续迁移到 STM32 + FreeRTOS + ESC 的单关节控制器。
 
-当前主线：**第十一课已完成，第十二课资料与参考实现已生成，第十三课正在准备**。后续课程等待独立学习，不提前标记学习者完课。旧 main 保留第一小节 false、后两小节 true，目标 10000、本地 Rx 地址 0x1020、第十课 0x0023。主站实验仍未验证真实从站通信。
+当前主线：**第十一课已完成，原规划剩余的第十二、十三课资料与参考实现已全部生成，本阶段教学告一段落**。从[软件课程结课导航](docs/软件课程结课导航.md)回顾即可。第十二、十三课待独立学习，不提前标记学习者完课。旧 main 保留第一小节 false、后两小节 true，目标 10000、本地 Rx 地址 0x1020、第十课 0x0023。主站实验仍未验证真实从站通信。
 
-学习安排（2026-10-05）：开发板虽已到货，学习者选择先完成原来的软件课程。当前继续纯 C 模拟器主线，暂缓硬件实操，保持每课中文注释、流程图、小步练习和参考答案。
+学习安排（2026-10-05）：学习者要求一次生成后续课程并结束本阶段。原编号课程到第十三课结束；另附 FreeRTOS 架构与 STM32F407 + LAN9252 迁移阅读资料。暂缓硬件实操，每课保留中文注释、流程图、小步练习和参考答案。
 
 ## 学习进度与课程版本
 
@@ -18,11 +18,13 @@
 | 10 | CiA402 基础：控制字与状态字 | 已完成 | [lesson-10](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-10)；[开始版本](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-10-start) |
 | 11 | CiA402 状态机 | 已完成本课教学范围 | [lesson-11](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11)；[第三小节起点](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part3-start)；[第二小节成果](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part2)；[第一小节成果](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-11-part1) |
 | 12 | CSP / CSV / CST 与关节模型 | 资料已生成，待独立学习 | [lesson-12-start](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-12-start) |
+| 13 | 周期任务、看门狗与诊断 | 资料已生成，待独立学习 | [lesson-13-start](https://github.com/BigFog666/EtherCat_0to1/tree/lesson-13-start) |
 
 第六课版本是在建立 Git 仓库时，根据本次聊天及现有文件重建的归档，不是当时已经存在的 Git 提交。保留了学习者完成的目标位置 2000、实际位置 300，以及中文注释和兼容的构建脚本。第七课开始版本不表示第七课已经完成。
 
 ## 目录导航
 
+- [软件课程结课导航](docs/软件课程结课导航.md)：剩余课程入口、阅读顺序、运行命令及带答案的自查题。
 - [项目交接文档](项目交接文档.md)：第一至第五课、最终目标及课程规划。
 - [纯 C 从站模拟器](EtherCAT_Slave_Simulator/README.md)：第六课说明及累计代码。
 - [第七课对象字典说明](EtherCAT_Slave_Simulator/Lesson_07_对象字典.md)：已完课，保留练习成果。
@@ -35,6 +37,9 @@
 - [第十一课第二步：快速停止](EtherCAT_Slave_Simulator/Lesson_11_第二步_快速停止.md)：已完成，区分停止请求与本地完成事件，含流程图、练习和答案。
 - [第十一课第三步：故障与复位](EtherCAT_Slave_Simulator/Lesson_11_第三步_故障与复位.md)：已归档，区分处理完成、原因消失和新的复位请求，含流程图与答案。
 - [第十二课：位置、速度、扭矩模式](EtherCAT_Slave_Simulator/Lesson_12_位置速度扭矩模式.md)：独立示例、13 字节 PDO、模型边界及练习答案。
+- [第十三课：周期任务、看门狗与诊断](EtherCAT_Slave_Simulator/Lesson_13_周期任务看门狗与诊断.md)：完整周期顺序、超时停止、恢复锁存及练习答案。
+- [附录 A：FreeRTOS 架构](docs/后续课程_附录A_FreeRTOS架构.md)：任务职责、共享数据与周期测量的阅读资料。
+- [附录 B：STM32 与 LAN9252 迁移](docs/后续课程_附录B_STM32与LAN9252迁移.md)：后续迁移路线，当前不要求板卡实操。
 - [程序运行流程图](docs/程序运行流程图.md)：main 的整体顺序及一次 SDO 事务的展开图。
 - [硬件与知识关系图](docs/硬件关系图/硬件与知识关系图.html)：按第九课起点整理的离线交互总图，串起 PC、ESC、STM32、电机与课程知识；最新进度以本 README 为准。
 - [学习记录](docs/学习记录.md)：每课新增内容、练习、验证及版本来源。
@@ -53,7 +58,13 @@
 
 主站实验依赖 SOEM 和 Npcap。vendor 源码及本地构建目录不提交；重新准备方法、固定的 SOEM 提交和许可证位置见主站实验 README。
 
-第十二课单独运行：` .\EtherCAT_Slave_Simulator\build_further.ps1 -Lesson 12 `，不会改变旧 main 的练习。
+一次编译并运行剩余两课，不会改变旧 main 的练习：
+
+```powershell
+.\EtherCAT_Slave_Simulator\build_further.ps1 -Lesson All
+```
+
+把 `All` 改为 `12` 或 `13` 可单独运行对应课程。教师边界与练习验证脚本为 `EtherCAT_Slave_Simulator/tests/verify_further.ps1`，理解课程时可以先跳过。
 
 ## 怎样回顾之前的课程
 
