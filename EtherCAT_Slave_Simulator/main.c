@@ -372,7 +372,7 @@ int main(void)
      * 首份 0x0040 表示 Switch On Disabled，即使命令已请求使能，
      * 主站也必须根据反馈判断当前驱动状态。
      * 练习只改 lesson10_status 为 0x0023，再观察后两份报告。 */
-    uint16_t lesson10_status = 0x0027; /* Operation Enabled 的状态编码样例。 */
+    uint16_t lesson10_status = 0x0023; /* 你完成的练习：Switched On，尚未使能运行。 */
     const uint16_t status_samples[] = {
         0x0040,
         lesson10_status,
