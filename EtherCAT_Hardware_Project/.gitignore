@@ -1,0 +1,16 @@
+/vendor/
+/build/
+/firmware/generated/
+/master/build/
+__pycache__/
+*.pyc
+*.axf
+*.hex
+*.bin
+*.uvguix.*
+*.uvoptx
+# 原始测量和抓包留在本地；整理后的关键结果写入 Markdown 或摘要 CSV。
+/evidence/logs/*
+/evidence/captures/*
+!/evidence/logs/README.md
+!/evidence/captures/README.md

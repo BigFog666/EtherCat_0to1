@@ -1,0 +1,15 @@
+{
+  "source_archive": "D:\\qianrus\\EtherCAT\\STM32F407+LAN9252 EtherCAT从站\\06_EtherCAT开发板源代码\\EtherCAT_IO例程\\IO例程_SPI_OLED+LED+KEY.zip",
+  "sha256": "d1d9f970d62029b56df948c9af8e320c497777ab24e36f3f5341572b17c22848",
+  "baseline": "SPI IO standard peripheral library + supplied SSC 5.11",
+  "project": "CMakeLists.txt",
+  "generated_sources": "firmware/generated/GCCSources.cmake",
+  "soem_commit": "88e8ed46efba7dfa7b94d08a512db25a33e3f8d5",
+  "identity": {
+    "vendor": "0x000FDFFF",
+    "product": "0x26483052",
+    "revision": "0x00010000"
+  },
+  "hardware_validation_record": "evidence/2026-10-05_首次硬件联调.md",
+  "sii_strategy": "retain factory EEPROM; align firmware and master identity"
+}

@@ -1,0 +1,4 @@
+file,samples,invalid_wkc,requested_period_us,min_interval_us,mean_interval_us,p99_interval_us,max_interval_us,min_roundtrip_us,mean_roundtrip_us,max_roundtrip_us
+20261005_demo_refresh_state.csv,209,0,10000,9933,10000.55,10043,10115,51,142.31,327
+20261005_demo_session_reset_01.csv,209,0,10000,9967,10000.00,10015,10033,48,410.59,1096
+20261005_demo_session_reset_02.csv,209,0,10000,9913,10000.00,10028,10087,52,120.78,435
